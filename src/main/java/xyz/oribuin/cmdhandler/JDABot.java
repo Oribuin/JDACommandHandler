@@ -16,13 +16,15 @@ import java.io.IOException;
 
 public class JDABot extends ListenerAdapter {
 
+    private static JDABot instance;
     public static String DEFAULT_PREFIX = "!";
     public static String OWNER_ID = "345406020450779149";
-    private GuildSettingsManager guildSettingsManager;
-    private DatabaseConnector connector;
-    private CommandHandler commandHandler;
 
-    private static void main(String[] args) {
+    private final GuildSettingsManager guildSettingsManager;
+    private final CommandHandler commandHandler;
+    private DatabaseConnector connector;
+
+    public static void main(String[] args) {
         try {
             new JDABot();
         } catch (LoginException e) {
@@ -30,41 +32,53 @@ public class JDABot extends ListenerAdapter {
         }
     }
 
+    // Register all the commands
     private void registerCommands() {
         this.commandHandler.registerCommands(
                 new CmdExample()
         );
     }
 
+    // Define bot stuff
     private JDABot() throws LoginException {
+        instance = this;
+
+        // Check if the file exists, if not, create the file
+
+        // INFO: Define the File Path and name
         File file = new File("data", "jdabot.db");
         try {
             if (!file.exists()) {
                 file.createNewFile();
 
-                System.out.println();
+                System.out.println("Created file at " + file.getAbsolutePath());
             }
 
-            // Register SQL COnnector
+            // Register SQL Connector
             this.connector = new SQLiteConnector(file);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
+        // Register GuildSettingsManager and CommandHandler
         this.guildSettingsManager = new GuildSettingsManager(this);
         this.commandHandler = new CommandHandler();
 
         this.registerCommands();
         this.enable();
 
-        JDA jda = JDABuilder.createDefault("BOT-TOKEN").addEventListeners(new CommandExecutor(this, commandHandler)).build();
+        // Login the bot
+        JDA jda = JDABuilder.createDefault("BOT-TOKEN").addEventListeners(new CommandExecutor(this, commandHandler), new GeneralEvents(this)).build();
 
-        // Startup Message
+        // Startup Bot
         System.out.println("*=* Loading Bot Commands *=*");
         int i = 0;
-        for (Command command : this.getCommandHandler().getCommands()) {
-            System.out.println("Loaded Command: " + command.getName() + " | (" + ++i + "/" + this.getCommandHandler().getCommands().size() + ")");
-        }
+
+        for (Command command : this.getCommandHandler().getCommands())
+            if (command.getAliases() == null)
+                throw new NullPointerException("Command aliases is null");
+            else
+                System.out.println("Loaded Command: " + command.getName() + " | (" + ++i + "/" + this.getCommandHandler().getCommands().size() + ")");
 
         System.out.println("*=* Loaded Up " + jda.getSelfUser().getName() + " with " + this.getCommandHandler().getCommands().size() + " Command(s) *=*");
     }
@@ -85,4 +99,7 @@ public class JDABot extends ListenerAdapter {
         return commandHandler;
     }
 
+    public static JDABot getInstance() {
+        return instance;
+    }
 }

@@ -6,7 +6,7 @@ plugins {
 
 
 group 'xyz.oribuin'
-version '1.0'
+version '1.0.1'
 compileJava.options.encoding = 'UTF-8'
 
 sourceCompatibility = 1.8
@@ -17,9 +17,13 @@ repositories {
     mavenLocal()
 }
 
+application {
+    mainClassName = 'xyz.oribuin.cmdhandler.JDABot'
+}
+
 dependencies {
     // Import JDA
-    implementation 'net.dv8tion:JDA:4.1.1_153'
+    implementation 'net.dv8tion:JDA:4.1.1_165'
 
     // Import Apache and SLF4j
     implementation 'org.slf4j:slf4j-nop:1.7.25'
@@ -31,4 +35,5 @@ dependencies {
 
 shadowJar {
     mergeServiceFiles()
+    archiveFileName = 'Bot.jar'
 }

@@ -19,7 +19,15 @@ public class GuildSettingsManager extends Manager {
 
     @Override
     public void enable() {
-        // Unused
+        this.createTable();
+    }
+    public void createTable() {
+    // Create the Guild Settings table if it doesn't exist
+         this.bot.getConnector().connect(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS guild_settings (guild_id LONG, prefix TXT, PRIMARY KEY(guild_id))")) {
+                statement.executeUpdate();
+            }
+        });
     }
 
     public void loadGuildSettings(Guild guild) {
@@ -31,9 +39,9 @@ public class GuildSettingsManager extends Manager {
 
             this.guildSettings.put(guild.getId(), settings);
 
-            String commandPrefix = "SELECT prefix FROM command_prefixes WHERE guild_id = ?";
+            String commandPrefix = "SELECT prefix FROM guild_settings WHERE guild_id = ?";
             try (PreparedStatement statement = connection.prepareStatement(commandPrefix)) {
-                statement.setString(1, guild.getId());
+                statement.setLong(1, guild.getIdLong());
                 ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next())
                     settings.setPrefix(resultSet.getString(1));
@@ -41,27 +49,26 @@ public class GuildSettingsManager extends Manager {
         });
     }
 
-    public void unloadGuildSettings(Guild guild) {
-        this.guildSettings.remove(guild.getId());
-    }
 
-    public GuildSettings getGuildSettings(Guild guild) {
-        if (!this.guildSettings.containsKey(guild.getId()))
-            this.loadGuildSettings(guild);
-
-        return this.guildSettings.get(guild.getId());
-    }
-
-    public void updateCommandPrefix(Guild guild, String prefix) {
-        this.getGuildSettings(guild).setPrefix(prefix);
-
-        this.bot.getConnector().connect(connection -> {
-            String update = "REPLACE INTO command_prefixes (guild_id, prefix) VALUES (?, ?)";
-            try (PreparedStatement statement = connection.prepareStatement(update)) {
-                statement.setString(1, guild.getId());
+    public void createGuild(Guild guild, String prefix) {
+        bot.getConnector().connect(connection -> {
+            String createGuild = "INSERT INTO guild_settings (guild_id, prefix) VALUES (?, ?)";
+            try (PreparedStatement statement = connection.prepareStatement(createGuild)) {
+                statement.setLong(1, guild.getIdLong());
                 statement.setString(2, prefix);
                 statement.executeUpdate();
             }
         });
     }
+
+    public void removeGuild(Guild guild) {
+        bot.getConnector().connect(connection -> {
+            String deleteGuild = "REMOVE FROM guild_settings WHERE guild_id = ?";
+            try (PreparedStatement statement = connection.prepareStatement(deleteGuild)) {
+                statement.setLong(1, guild.getIdLong());
+                statement.executeUpdate();
+            }
+        });
+    }
+
 }
