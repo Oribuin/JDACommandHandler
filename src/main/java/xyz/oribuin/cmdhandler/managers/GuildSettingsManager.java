@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class GuildSettingsManager extends Manager {
 
-    private Map<String, GuildSettings> guildSettings;
+    private final Map<String, GuildSettings> guildSettings;
 
     public GuildSettingsManager(JDABot bot) {
         super(bot);
@@ -21,6 +21,7 @@ public class GuildSettingsManager extends Manager {
     public void enable() {
         this.createTable();
     }
+
     public void createTable() {
     // Create the Guild Settings table if it doesn't exist
          this.bot.getConnector().connect(connection -> {
@@ -71,4 +72,10 @@ public class GuildSettingsManager extends Manager {
         });
     }
 
+    public GuildSettings getGuildSettings(Guild guild) {
+        if (!guildSettings.containsKey(guild.getId()))
+            loadGuildSettings(guild);
+
+        return guildSettings.get(guild.getId());
+    }
 }

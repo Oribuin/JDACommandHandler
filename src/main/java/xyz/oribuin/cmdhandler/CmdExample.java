@@ -9,8 +9,11 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 public class CmdExample extends Command {
+    private final EventWaiter waiter;
 
-    public CmdExample() {
+    public CmdExample(EventWaiter waiter) {
+        this.waiter = waiter;
+
         // Define command name
         this.name = "Name";
         /*

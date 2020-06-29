@@ -19,10 +19,11 @@ public class JDABot extends ListenerAdapter {
     private static JDABot instance;
     public static String DEFAULT_PREFIX = "!";
     public static String OWNER_ID = "345406020450779149";
-
     private final GuildSettingsManager guildSettingsManager;
     private final CommandHandler commandHandler;
     private DatabaseConnector connector;
+
+    private final EventWaiter waiter = new EventWaiter();
 
     public static void main(String[] args) {
         try {
@@ -35,7 +36,7 @@ public class JDABot extends ListenerAdapter {
     // Register all the commands
     private void registerCommands() {
         this.commandHandler.registerCommands(
-                new CmdExample()
+                new CmdExample(waiter)
         );
     }
 
@@ -48,6 +49,10 @@ public class JDABot extends ListenerAdapter {
         // INFO: Define the File Path and name
         File file = new File("data", "jdabot.db");
         try {
+
+            if (!file.getParentFile().exists())
+                file.mkdir();
+
             if (!file.exists()) {
                 file.createNewFile();
 
@@ -68,7 +73,7 @@ public class JDABot extends ListenerAdapter {
         this.enable();
 
         // Login the bot
-        JDA jda = JDABuilder.createDefault("BOT-TOKEN").addEventListeners(new CommandExecutor(this, commandHandler), new GeneralEvents(this)).build();
+        JDA jda = JDABuilder.createDefault("BOT-TOKEN").addEventListeners(waiter, new CommandExecutor(this, commandHandler), new GeneralEvents(this),  this).build();
 
         // Startup Bot
         System.out.println("*=* Loading Bot Commands *=*");

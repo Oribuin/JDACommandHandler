@@ -6,7 +6,7 @@ import xyz.oribuin.cmdhandler.JDABot;
 
 import java.util.List;
 
-public class Command extends ListenerAdapter {
+public abstract class Command extends ListenerAdapter {
 
     public final JDABot bot;
     protected String name;
@@ -22,9 +22,7 @@ public class Command extends ListenerAdapter {
         this.bot = JDABot.getInstance();
     }
 
-    public void executeCommand(CommandEvent event) {
-        // Unused
-    }
+    public abstract void executeCommand(CommandEvent event);
 
     public String getName() {
         return name;
